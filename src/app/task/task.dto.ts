@@ -1,12 +1,12 @@
 import { TaskStatus } from '@trigger/core/task/task.entity'
 
-export class TaskTriggerInputDto {
+export class TriggerTaskInputDto {
   apiKey?: string
   source: string
   args: { [key: string]: string }
 }
 
-export class TaskTriggerOutputDto {
+export class TriggerTaskOutputDto {
   message: string
   scanId: string
 }

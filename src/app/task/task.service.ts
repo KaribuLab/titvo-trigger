@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { TaskTriggerInputDto, TaskTriggerOutputDto, GetTaskStatusInputDto, GetTaskStatusOutputDto } from '@trigger/app/task/task.dto'
+import { TriggerTaskInputDto, TriggerTaskOutputDto, GetTaskStatusInputDto, GetTaskStatusOutputDto } from '@trigger/app/task/task.dto'
 import { BatchService } from '@titvo/aws'
 import { v4 as uuidv4 } from 'uuid'
 import { TaskRepository } from '@trigger/core/task/task.repository'
@@ -22,7 +22,7 @@ export class TriggerTaskUseCase {
     private readonly validateApiKeyUseCase: ValidateApiKeyUseCase
   ) { }
 
-  async execute (input: TaskTriggerInputDto): Promise<TaskTriggerOutputDto> {
+  async execute (input: TriggerTaskInputDto): Promise<TriggerTaskOutputDto> {
     const userId = await this.validateApiKeyUseCase.execute(input.apiKey)
     const source = input.source as TaskSource
     const strategy = await this.scmStrategyResolver.resolve(source)
