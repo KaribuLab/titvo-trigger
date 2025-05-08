@@ -23,7 +23,7 @@ export class TriggerTaskUseCase {
   ) { }
 
   async execute (input: TriggerTaskInputDto): Promise<TriggerTaskOutputDto> {
-    const userId = await this.validateApiKeyUseCase.execute(input.apiKey)
+    const apiKey = await this.validateApiKeyUseCase.execute(input.apiKey)
     const source = input.source as TaskSource
     const strategy = await this.scmStrategyResolver.resolve(source)
     const args = await strategy.handle(input.args as TaskArgs)
@@ -44,7 +44,7 @@ export class TriggerTaskUseCase {
     await this.taskRepository.save({
       id: scanId,
       source,
-      repositoryId: `${userId as string}:${repositorySlugHash}`,
+      repositoryId: `${apiKey.userId}:${repositorySlugHash}`,
       status: TaskStatus.PENDING,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
