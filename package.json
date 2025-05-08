@@ -1,0 +1,17 @@
+{
+  "name": "titvo-trigger",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@titvo/shared": "file:shared",
+    "@titvo/auth": "file:auth",
+    "@titvo/aws": "file:aws"
+  },
+  "author": "",
+  "license": "ISC"
+}
