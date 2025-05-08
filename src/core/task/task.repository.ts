@@ -8,4 +8,6 @@ export interface TaskRepositoryOptions {
 
 export abstract class TaskRepository {
   abstract save (document: TaskEntity): Promise<void>
+
+  abstract getById (scanId: string): Promise<TaskEntity | null>
 }

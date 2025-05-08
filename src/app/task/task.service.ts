@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { TaskTriggerInputDto, TaskTriggerOutputDto } from '@trigger/app/task/task.dto'
+import { TaskTriggerInputDto, TaskTriggerOutputDto, TaskStatusInputDto, TaskStatusOutputDto } from '@trigger/app/task/task.dto'
 import { BatchService } from '@titvo/aws'
 import { v4 as uuidv4 } from 'uuid'
 import { TaskRepository } from '@trigger/core/task/task.repository'
@@ -8,7 +8,7 @@ import { ScmStrategyResolver } from '@trigger/app/scm/scm.interface'
 import { ValidateApiKeyUseCase } from '@titvo/auth'
 import { createHash } from 'crypto'
 import { ConfigService } from '@titvo/shared'
-import { RepositoryIdUndefinedException } from '@trigger/app/task/task.error'
+import { RepositoryIdUndefinedException, ScanIdNotFoundError, TaskNotFoundError } from '@trigger/app/task/task.error'
 
 @Injectable()
 export class TriggerTaskUseCase {
@@ -56,6 +56,30 @@ export class TriggerTaskUseCase {
     return {
       message: 'Scan starting',
       scanId
+    }
+  }
+}
+
+@Injectable()
+export class GetTaskStatusUseCase {
+  constructor (
+    private readonly taskRepository: TaskRepository,
+    private readonly validateApiKeyUseCase: ValidateApiKeyUseCase
+  ) { }
+
+  async execute (input: TaskStatusInputDto): Promise<TaskStatusOutputDto> {
+    await this.validateApiKeyUseCase.execute(input.apiKey)
+    if (input.scanId === undefined) {
+      throw new ScanIdNotFoundError('Scan ID not found')
+    }
+    const task = await this.taskRepository.getById(input.scanId)
+    if (task === null) {
+      throw new TaskNotFoundError('Task not found')
+    }
+    return {
+      status: task.status,
+      updatedAt: task.updatedAt,
+      result: task.result
     }
   }
 }
