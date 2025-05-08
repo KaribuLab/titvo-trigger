@@ -1,4 +1,4 @@
-import { TaskEntity } from '@core/task/task.entity'
+import { TaskEntity } from '@trigger/core/task/task.entity'
 
 export interface TaskRepositoryOptions {
   tableName: string
@@ -7,6 +7,5 @@ export interface TaskRepositoryOptions {
 }
 
 export abstract class TaskRepository {
-  abstract save(document: TaskEntity): Promise<void>
+  abstract save (document: TaskEntity): Promise<void>
 }
-
