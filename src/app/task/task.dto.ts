@@ -11,12 +11,12 @@ export class TaskTriggerOutputDto {
   scanId: string
 }
 
-export class TaskStatusInputDto {
+export class GetTaskStatusInputDto {
   scanId: string
   apiKey?: string
 }
 
-export class TaskStatusOutputDto {
+export class GetTaskStatusOutputDto {
   status: TaskStatus
   updatedAt: string
   result?: Record<string, string>

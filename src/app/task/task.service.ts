@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { TaskTriggerInputDto, TaskTriggerOutputDto, TaskStatusInputDto, TaskStatusOutputDto } from '@trigger/app/task/task.dto'
+import { TaskTriggerInputDto, TaskTriggerOutputDto, GetTaskStatusInputDto, GetTaskStatusOutputDto } from '@trigger/app/task/task.dto'
 import { BatchService } from '@titvo/aws'
 import { v4 as uuidv4 } from 'uuid'
 import { TaskRepository } from '@trigger/core/task/task.repository'
@@ -67,7 +67,7 @@ export class GetTaskStatusUseCase {
     private readonly validateApiKeyUseCase: ValidateApiKeyUseCase
   ) { }
 
-  async execute (input: TaskStatusInputDto): Promise<TaskStatusOutputDto> {
+  async execute (input: GetTaskStatusInputDto): Promise<GetTaskStatusOutputDto> {
     await this.validateApiKeyUseCase.execute(input.apiKey)
     if (input.scanId === undefined) {
       throw new ScanIdNotFoundError('Scan ID not found')
