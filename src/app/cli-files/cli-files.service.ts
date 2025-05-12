@@ -3,14 +3,16 @@ import { ConfigService, StorageService } from '@titvo/shared'
 import { CliFilesRepository } from '@trigger/core/cli-files/cli-files.repository'
 import { randomUUID } from 'crypto'
 import { GetCliFilesSignedUrlsInputDo, GetCliFilesSignedUrlsOutputDto } from '@trigger/app/cli-files/cli-files.dto'
+import { ValidateApiKeyUseCase } from '@titvo/auth'
 
 const ONE_DAY_IN_SECONDS = 60 * 60 * 24
 const ONE_DAY_IN_MS = ONE_DAY_IN_SECONDS * 1000
 
 @Injectable()
 export class GetCliFilesSignedUrlsUseCase {
-  constructor (private readonly configService: ConfigService, private readonly cliFilesRepository: CliFilesRepository, private readonly storageService: StorageService) {}
+  constructor (private readonly configService: ConfigService, private readonly cliFilesRepository: CliFilesRepository, private readonly storageService: StorageService, private readonly validateApiKeyUseCase: ValidateApiKeyUseCase) {}
   async execute (input: GetCliFilesSignedUrlsInputDo): Promise<GetCliFilesSignedUrlsOutputDto> {
+    await this.validateApiKeyUseCase.execute(input.apiKey)
     const bucketName = await this.configService.get('cli_files_bucket_name')
     const presignedUrls = await Promise.all(input.files.map(async (file) => {
       const fileKey = `temp/${input.batchId}/${file.name}`
