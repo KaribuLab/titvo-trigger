@@ -10,13 +10,12 @@ const ONE_DAY_IN_MS = ONE_DAY_IN_SECONDS * 1000
 @Injectable()
 export class GetCliFilesSignedUrlsUseCase {
   constructor (private readonly configService: ConfigService, private readonly cliFilesRepository: CliFilesRepository, private readonly storageService: StorageService) {}
-  async process (input: GetCliFilesSignedUrlsInputDo): Promise<GetCliFilesSignedUrlsOutputDto> {
+  async execute (input: GetCliFilesSignedUrlsInputDo): Promise<GetCliFilesSignedUrlsOutputDto> {
     const bucketName = await this.configService.get('cli_files_bucket_name')
     const presignedUrls = await Promise.all(input.files.map(async (file) => {
       const fileKey = `temp/${input.batchId}/${file.name}`
       const output = await this.storageService.getSignedUrl({
         containerName: bucketName,
-        inputPath: fileKey,
         filePath: fileKey,
         contentType: file.contentType,
         expiresIn: ONE_DAY_IN_SECONDS
