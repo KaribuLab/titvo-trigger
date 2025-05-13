@@ -17,11 +17,16 @@ export interface TaskArgs {
   [key: string]: string
 }
 
+export interface TaskResult {
+  [key: string]: string
+}
+
 export interface TaskEntity {
   id?: string
   source: TaskSource
   repositoryId: string
   args: TaskArgs
+  result?: TaskResult
   status: TaskStatus
   createdAt: string
   updatedAt: string

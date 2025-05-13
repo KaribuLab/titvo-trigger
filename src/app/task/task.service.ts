@@ -1,20 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { TaskTriggerInputDto, TaskTriggerOutputDto } from '@app/task/task.dto'
+import { TriggerTaskInputDto, TriggerTaskOutputDto, GetTaskStatusInputDto, GetTaskStatusOutputDto } from '@trigger/app/task/task.dto'
 import { BatchService } from '@titvo/aws'
 import { v4 as uuidv4 } from 'uuid'
-import { TaskRepository } from '@core/task/task.repository'
-import { TaskArgs, TaskSource, TaskStatus } from '@core/task/task.entity'
-import { ScmStrategyResolver } from '@app/scm/scm.interface'
+import { TaskRepository } from '@trigger/core/task/task.repository'
+import { TaskArgs, TaskSource, TaskStatus } from '@trigger/core/task/task.entity'
+import { ScmStrategyResolver } from '@trigger/app/scm/scm.interface'
 import { ValidateApiKeyUseCase } from '@titvo/auth'
 import { createHash } from 'crypto'
 import { ConfigService } from '@titvo/shared'
-import { RepositoryIdUndefinedException } from '@app/task/task.error'
+import { RepositoryIdUndefinedException, ScanIdNotFoundError, TaskNotFoundError } from '@trigger/app/task/task.error'
 
 @Injectable()
 export class TriggerTaskUseCase {
   private readonly logger = new Logger(TriggerTaskUseCase.name)
 
-  constructor(
+  constructor (
     private readonly configService: ConfigService,
     private readonly batchService: BatchService,
     private readonly taskRepository: TaskRepository,
@@ -22,8 +22,8 @@ export class TriggerTaskUseCase {
     private readonly validateApiKeyUseCase: ValidateApiKeyUseCase
   ) { }
 
-  async execute(input: TaskTriggerInputDto): Promise<TaskTriggerOutputDto> {
-    const userId = await this.validateApiKeyUseCase.execute(input.apiKey)
+  async execute (input: TriggerTaskInputDto): Promise<TriggerTaskOutputDto> {
+    const apiKey = await this.validateApiKeyUseCase.execute(input.apiKey)
     const source = input.source as TaskSource
     const strategy = await this.scmStrategyResolver.resolve(source)
     const args = await strategy.handle(input.args as TaskArgs)
@@ -44,18 +44,42 @@ export class TriggerTaskUseCase {
     await this.taskRepository.save({
       id: scanId,
       source,
-      repositoryId: `${userId}:${repositorySlugHash}`,
+      repositoryId: `${apiKey.userId}:${repositorySlugHash}`,
       status: TaskStatus.PENDING,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       args
     })
-    await this.batchService.submitJob(`${source}-security-scan-${scanId}`, jobQueue, jobDefinition, [
+    await this.batchService.submitJob(`${source as string}-security-scan-${scanId}`, jobQueue, jobDefinition, [
       { name: 'TITVO_SCAN_TASK_ID', value: scanId }
     ])
     return {
       message: 'Scan starting',
       scanId
+    }
+  }
+}
+
+@Injectable()
+export class GetTaskStatusUseCase {
+  constructor (
+    private readonly taskRepository: TaskRepository,
+    private readonly validateApiKeyUseCase: ValidateApiKeyUseCase
+  ) { }
+
+  async execute (input: GetTaskStatusInputDto): Promise<GetTaskStatusOutputDto> {
+    await this.validateApiKeyUseCase.execute(input.apiKey)
+    if (input.scanId === undefined) {
+      throw new ScanIdNotFoundError('Scan ID not found')
+    }
+    const task = await this.taskRepository.getById(input.scanId)
+    if (task === null) {
+      throw new TaskNotFoundError('Task not found')
+    }
+    return {
+      status: task.status,
+      updatedAt: task.updatedAt,
+      result: task.result
     }
   }
 }

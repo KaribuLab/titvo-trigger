@@ -22,4 +22,4 @@ export class GithubAssigneeNotFoundError extends AppError {
   constructor (message: string) {
     super('github-assignee-not-found', message)
   }
-} 
+}

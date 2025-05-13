@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { TaskArgs, TaskSource } from '@core/task/task.entity'
-import { ScmStrategy } from '@app/scm/scm.interface'
+import { TaskArgs, TaskSource } from '@trigger/core/task/task.entity'
+import { ScmStrategy } from '@trigger/app/scm/scm.interface'
 import { AesService } from '@titvo/shared'
 import { GithubTokenNotFoundError, GithubRepoNameNotFoundError, GithubCommitShaNotFoundError, GithubAssigneeNotFoundError } from './github.error'
 

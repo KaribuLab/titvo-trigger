@@ -22,4 +22,4 @@ export class BitbucketProjectKeyNotFoundError extends AppError {
   constructor (message: string) {
     super('bitbucket-project-key-not-found', message)
   }
-} 
+}

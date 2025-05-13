@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { TaskArgs, TaskSource } from '@core/task/task.entity'
-import { ScmStrategy } from '@app/scm/scm.interface'
-import { CliFilesRepository } from '@core/cli-files/cli-files.repository'
-import { BatchIdNotFoundError, BatchIdRequiredError, RepositoryUrlRequiredError, RepositoryUrlInvalidError } from '@app/scm/cli.error'
+import { TaskArgs, TaskSource } from '@trigger/core/task/task.entity'
+import { ScmStrategy } from '@trigger/app/scm/scm.interface'
+import { CliFilesRepository } from '@trigger/core/cli-files/cli-files.repository'
+import { BatchIdNotFoundError, BatchIdRequiredError, RepositoryUrlRequiredError, RepositoryUrlInvalidError } from '@trigger/app/scm/cli.error'
 
 @Injectable()
 export class CliStrategy implements ScmStrategy {
@@ -24,9 +24,9 @@ export class CliStrategy implements ScmStrategy {
       throw new RepositoryUrlRequiredError('Repository URL is required')
     }
     let repositorySlug: string | undefined
-    if (repositoryUrl.startsWith('git@')) {
-      repositorySlug = repositoryUrl.replace(/^git@[^:]+:(.+)$/, '$1').replace(/\.git$/, '')
-    } else if (repositoryUrl.startsWith('http')) {
+    if ((repositoryUrl).startsWith('git@')) {
+      repositorySlug = (repositoryUrl).replace(/^git@[^:]+:(.+)$/, '$1').replace(/\.git$/, '')
+    } else if ((repositoryUrl).startsWith('http')) {
       repositorySlug = new URL(repositoryUrl).pathname.slice(1).replace(/\.git$/, '')
     }
     if (repositorySlug === undefined) {
