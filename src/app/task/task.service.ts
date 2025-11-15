@@ -14,7 +14,7 @@ import { RepositoryIdUndefinedException, ScanIdNotFoundError, TaskNotFoundError 
 export class TriggerTaskUseCase {
   private readonly logger = new Logger(TriggerTaskUseCase.name)
 
-  constructor (
+  constructor(
     private readonly configService: ConfigService,
     private readonly batchService: BatchService,
     private readonly taskRepository: TaskRepository,
@@ -22,7 +22,7 @@ export class TriggerTaskUseCase {
     private readonly validateApiKeyUseCase: ValidateApiKeyUseCase
   ) { }
 
-  async execute (input: TriggerTaskInputDto): Promise<TriggerTaskOutputDto> {
+  async execute(input: TriggerTaskInputDto): Promise<TriggerTaskOutputDto> {
     const apiKey = await this.validateApiKeyUseCase.execute(input.apiKey)
     const source = input.source as TaskSource
     const strategy = await this.scmStrategyResolver.resolve(source)
@@ -48,7 +48,10 @@ export class TriggerTaskUseCase {
       status: TaskStatus.PENDING,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      args
+      args: {
+        ...args,
+        repository_url: input.args.repository_url
+      }
     })
     await this.batchService.submitJob(`${source as string}-security-scan-${scanId}`, jobQueue, jobDefinition, [
       { name: 'TITVO_SCAN_TASK_ID', value: scanId }
@@ -62,12 +65,12 @@ export class TriggerTaskUseCase {
 
 @Injectable()
 export class GetTaskStatusUseCase {
-  constructor (
+  constructor(
     private readonly taskRepository: TaskRepository,
     private readonly validateApiKeyUseCase: ValidateApiKeyUseCase
   ) { }
 
-  async execute (input: GetTaskStatusInputDto): Promise<GetTaskStatusOutputDto> {
+  async execute(input: GetTaskStatusInputDto): Promise<GetTaskStatusOutputDto> {
     await this.validateApiKeyUseCase.execute(input.apiKey)
     if (input.scanId === undefined) {
       throw new ScanIdNotFoundError('Scan ID not found')
