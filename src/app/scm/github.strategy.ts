@@ -29,7 +29,6 @@ export class GithubStrategy implements ScmStrategy {
       repository_slug: githubRepoName,
       github_assignee: githubAssignee,
       github_repo_name: githubRepoName,
-      github_token: await this.aesService.encrypt(githubToken),
       github_commit_sha: githubCommitSha
     }
   }
