@@ -53,9 +53,17 @@ export class TriggerTaskUseCase {
         repository_url: input.args.repository_url
       }
     })
-    await this.batchService.submitJob(`${source as string}-security-scan-${scanId}`, jobQueue, jobDefinition, [
+    const environment = [
       { name: 'TITVO_SCAN_TASK_ID', value: scanId }
-    ])
+    ]
+    if (process.env.AWS_STAGE === 'localstack') {
+      this.logger.warn('Using localstack environment variables')
+      environment.push({ name: 'TASK_TABLE_NAME', value: process.env.TASK_TABLE_NAME as string })
+      environment.push({ name: 'CONFIG_TABLE_NAME', value: process.env.CONFIG_TABLE_NAME as string })
+      environment.push({ name: 'ENCRYPTION_KEY_NAME', value: process.env.ENCRYPTION_KEY_NAME as string })
+      this.logger.log('Environment variables: %s', environment)
+    }
+    await this.batchService.submitJob(`${source as string}-security-scan-${scanId}`, jobQueue, jobDefinition, environment)
     return {
       message: 'Scan starting',
       scanId
