@@ -61,6 +61,7 @@ export class TriggerTaskUseCase {
       environment.push({ name: 'TASK_TABLE_NAME', value: process.env.TASK_TABLE_NAME as string })
       environment.push({ name: 'CONFIG_TABLE_NAME', value: process.env.CONFIG_TABLE_NAME as string })
       environment.push({ name: 'ENCRYPTION_KEY_NAME', value: process.env.ENCRYPTION_KEY_NAME as string })
+      environment.push({ name: 'LOG_LEVEL', value: process.env.LOG_LEVEL?.toUpperCase() as string })
       this.logger.log('Environment variables: %s', environment)
     }
     await this.batchService.submitJob(`${source as string}-security-scan-${scanId}`, jobQueue, jobDefinition, environment)
