@@ -8,7 +8,7 @@ import { ScmStrategyResolver } from '@trigger/app/scm/scm.interface'
 import { ValidateApiKeyUseCase } from '@titvo/auth'
 import { createHash } from 'crypto'
 import { ConfigService } from '@titvo/shared'
-import { RepositoryIdUndefinedException, ScanIdNotFoundError, TaskNotFoundError } from '@trigger/app/task/task.error'
+import { ArgumentNotFoundError, RepositoryIdUndefinedException, ScanIdNotFoundError, TaskNotFoundError } from '@trigger/app/task/task.error'
 
 @Injectable()
 export class TriggerTaskUseCase {
@@ -24,6 +24,10 @@ export class TriggerTaskUseCase {
 
   async execute(input: TriggerTaskInputDto): Promise<TriggerTaskOutputDto> {
     const apiKey = await this.validateApiKeyUseCase.execute(input.apiKey)
+    this.logger.debug(`Repository URL: ${input.args.repository_url}`)
+    if ((input.args.repository_url ?? '') === '') {
+      throw new ArgumentNotFoundError("repository_url argument is required")
+    }
     const source = input.source as TaskSource
     const strategy = await this.scmStrategyResolver.resolve(source)
     const args = await strategy.handle(input.args as TaskArgs)
