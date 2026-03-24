@@ -23,6 +23,7 @@ export interface TaskResult {
 
 export interface TaskEntity {
   id?: string
+  jobId?: string
   source: TaskSource
   repositoryId: string
   args: TaskArgs

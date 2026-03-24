@@ -45,21 +45,10 @@ export class TriggerTaskUseCase {
       throw new RepositoryIdUndefinedException()
     }
 
-    await this.taskRepository.save({
-      id: scanId,
-      source,
-      repositoryId: `${apiKey.userId}:${repositorySlugHash}`,
-      status: TaskStatus.PENDING,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      args: {
-        ...args,
-        repository_url: input.args.repository_url
-      }
-    })
     const environment = [
       { name: 'TITVO_SCAN_TASK_ID', value: scanId }
     ]
+    
     if (process.env.AWS_STAGE === 'localstack') {
       this.logger.warn('Using localstack environment variables')
       environment.push({ name: 'TITVO_DYNAMO_TASK_TABLE_NAME', value: process.env.TITVO_DYNAMO_TASK_TABLE_NAME as string })
@@ -68,10 +57,23 @@ export class TriggerTaskUseCase {
       environment.push({ name: 'TITVO_LOG_LEVEL', value: process.env.TITVO_LOG_LEVEL?.toUpperCase() as string })
       this.logger.log('Environment variables: %s', environment)
     }
-    await this.batchService.submitJob(`${source as string}-security-scan-${scanId}`, jobQueue, jobDefinition, environment)
+    const response = await this.batchService.submitJob(`${source as string}-security-scan-${scanId}`, jobQueue, jobDefinition, environment)
+    await this.taskRepository.save({
+      id: scanId,
+      args: {
+        ...args,
+        repository_url: input.args.repository_url
+      },
+      jobId: response.jobId,
+      source,
+      repositoryId: `${apiKey.userId}:${repositorySlugHash}`,
+      status: TaskStatus.IN_PROGRESS,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    })
     return {
       message: 'Scan starting',
-      scanId
+      scanId,
     }
   }
 }
