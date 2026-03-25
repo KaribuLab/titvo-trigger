@@ -80,9 +80,12 @@ export class TriggerTaskUseCase {
 
 @Injectable()
 export class GetTaskStatusUseCase {
+  private readonly logger = new Logger(GetTaskStatusUseCase.name)
+
   constructor(
     private readonly taskRepository: TaskRepository,
-    private readonly validateApiKeyUseCase: ValidateApiKeyUseCase
+    private readonly validateApiKeyUseCase: ValidateApiKeyUseCase,
+    private readonly batchService: BatchService
   ) { }
 
   async execute(input: GetTaskStatusInputDto): Promise<GetTaskStatusOutputDto> {
@@ -93,6 +96,20 @@ export class GetTaskStatusUseCase {
     const task = await this.taskRepository.getById(input.scanId)
     if (task === null) {
       throw new TaskNotFoundError('Task not found')
+    }
+    if (task.status === TaskStatus.IN_PROGRESS || task.status === TaskStatus.PENDING) {
+      const jobStatus = await this.batchService.getJobStatus(task.jobId!)
+      this.logger.log(`Job ${task.jobId} status: ${jobStatus.status}`)
+      if (jobStatus.isFailed) {
+        task.status = TaskStatus.FAILED
+        task.updatedAt = new Date().toISOString()
+        await this.taskRepository.save(task)
+        return {
+          status: task.status,
+          updatedAt: task.updatedAt,
+          result: task.result
+        }
+      }
     }
     return {
       status: task.status,
