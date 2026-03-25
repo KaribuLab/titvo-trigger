@@ -14,7 +14,7 @@ import { ArgumentNotFoundError, RepositoryIdUndefinedException, ScanIdNotFoundEr
 export class TriggerTaskUseCase {
   private readonly logger = new Logger(TriggerTaskUseCase.name)
 
-  constructor(
+  constructor (
     private readonly configService: ConfigService,
     private readonly batchService: BatchService,
     private readonly taskRepository: TaskRepository,
@@ -22,11 +22,11 @@ export class TriggerTaskUseCase {
     private readonly validateApiKeyUseCase: ValidateApiKeyUseCase
   ) { }
 
-  async execute(input: TriggerTaskInputDto): Promise<TriggerTaskOutputDto> {
+  async execute (input: TriggerTaskInputDto): Promise<TriggerTaskOutputDto> {
     const apiKey = await this.validateApiKeyUseCase.execute(input.apiKey)
     this.logger.debug(`Repository URL: ${input.args.repository_url}`)
     if ((input.args.repository_url ?? '') === '') {
-      throw new ArgumentNotFoundError("repository_url argument is required")
+      throw new ArgumentNotFoundError('repository_url argument is required')
     }
     const source = input.source as TaskSource
     const strategy = await this.scmStrategyResolver.resolve(source)
@@ -48,7 +48,7 @@ export class TriggerTaskUseCase {
     const environment = [
       { name: 'TITVO_SCAN_TASK_ID', value: scanId }
     ]
-    
+
     if (process.env.AWS_STAGE === 'localstack') {
       this.logger.warn('Using localstack environment variables')
       environment.push({ name: 'TITVO_DYNAMO_TASK_TABLE_NAME', value: process.env.TITVO_DYNAMO_TASK_TABLE_NAME as string })
@@ -73,7 +73,7 @@ export class TriggerTaskUseCase {
     })
     return {
       message: 'Scan starting',
-      scanId,
+      scanId
     }
   }
 }
@@ -82,13 +82,13 @@ export class TriggerTaskUseCase {
 export class GetTaskStatusUseCase {
   private readonly logger = new Logger(GetTaskStatusUseCase.name)
 
-  constructor(
+  constructor (
     private readonly taskRepository: TaskRepository,
     private readonly validateApiKeyUseCase: ValidateApiKeyUseCase,
     private readonly batchService: BatchService
   ) { }
 
-  async execute(input: GetTaskStatusInputDto): Promise<GetTaskStatusOutputDto> {
+  async execute (input: GetTaskStatusInputDto): Promise<GetTaskStatusOutputDto> {
     await this.validateApiKeyUseCase.execute(input.apiKey)
     if (input.scanId === undefined) {
       throw new ScanIdNotFoundError('Scan ID not found')
@@ -98,8 +98,12 @@ export class GetTaskStatusUseCase {
       throw new TaskNotFoundError('Task not found')
     }
     if (task.status === TaskStatus.IN_PROGRESS || task.status === TaskStatus.PENDING) {
-      const jobStatus = await this.batchService.getJobStatus(task.jobId!)
-      this.logger.log(`Job ${task.jobId} status: ${jobStatus.status}`)
+      const jobId = task.jobId
+      if (jobId === undefined) {
+        throw new Error('Task has no job id')
+      }
+      const jobStatus = await this.batchService.getJobStatus(jobId)
+      this.logger.log(`Job ${jobId} status: ${jobStatus.status}`)
       if (jobStatus.isFailed) {
         task.status = TaskStatus.FAILED
         task.updatedAt = new Date().toISOString()

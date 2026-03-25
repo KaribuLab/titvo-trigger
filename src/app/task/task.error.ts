@@ -21,7 +21,7 @@ export class TaskNotFoundError extends AppError {
 }
 
 export class ArgumentNotFoundError extends AppError {
-  constructor(message: string){
+  constructor (message: string) {
     super('argument-not-found', message)
     this.name = 'ArgumentNotFoundError'
   }
