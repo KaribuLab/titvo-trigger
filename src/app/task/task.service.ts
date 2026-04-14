@@ -55,6 +55,10 @@ export class TriggerTaskUseCase {
       environment.push({ name: 'TITVO_DYNAMO_CONFIGURATION_TABLE_NAME', value: process.env.CONFIG_TABLE_NAME as string })
       environment.push({ name: 'TITVO_ENCRYPTION_KEY_NAME', value: process.env.ENCRYPTION_KEY_NAME as string })
       environment.push({ name: 'TITVO_LOG_LEVEL', value: (process.env.LOG_LEVEL ?? 'info').toUpperCase() })
+      environment.push({ name: 'TITVO_BITBUCKET_CODE_INSIGHTS_FUNCTION_NAME', value: process.env.TITVO_BITBUCKET_CODE_INSIGHTS_FUNCTION_NAME as string })
+      environment.push({ name: 'TITVO_GITHUB_ISSUE_FUNCTION_NAME', value: process.env.TITVO_GITHUB_ISSUE_FUNCTION_NAME as string })
+      environment.push({ name: 'TITVO_REPORT_FUNCTION_NAME', value: process.env.TITVO_REPORT_FUNCTION_NAME as string })
+      environment.push({ name: 'AWS_STAGE', value: process.env.AWS_STAGE as string })
       this.logger.log('Environment variables: %s', environment)
     }
     const response = await this.batchService.submitJob(`${source as string}-security-scan-${scanId}`, jobQueue, jobDefinition, environment)
