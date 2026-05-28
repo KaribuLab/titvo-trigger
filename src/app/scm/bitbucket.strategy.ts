@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { TaskArgs, TaskSource } from '@trigger/core/task/task.entity'
 import { ScmStrategy } from '@trigger/app/scm/scm.interface'
 import { AesService } from '@titvo/shared'
-import { BitbucketCommitShaNotFoundError, BitbucketWorkspaceNotFoundError, BitbucketRepoSlugNotFoundError, BitbucketProjectKeyNotFoundError } from './bitbucket.error'
+import { BitbucketCommitShaNotFoundError, BitbucketWorkspaceNotFoundError, BitbucketRepoSlugNotFoundError, BitbucketProjectKeyNotFoundError, BitbucketBranchNotFoundError } from './bitbucket.error'
 
 @Injectable()
 export class BitbucketStrategy implements ScmStrategy {
@@ -12,7 +12,7 @@ export class BitbucketStrategy implements ScmStrategy {
   }
 
   async handle (taskArgs: TaskArgs): Promise<TaskArgs> {
-    const { bitbucket_commit: bitbucketCommit, bitbucket_workspace: bitbucketWorkspace, bitbucket_repo_slug: bitbucketRepoSlug, bitbucket_project_key: bitbucketProjectKey } = taskArgs
+    const { bitbucket_commit: bitbucketCommit, bitbucket_workspace: bitbucketWorkspace, bitbucket_repo_slug: bitbucketRepoSlug, bitbucket_project_key: bitbucketProjectKey, bitbucket_branch: bitbucketBranch } = taskArgs
 
     if (bitbucketCommit === undefined) {
       throw new BitbucketCommitShaNotFoundError('Bitbucket commit sha not found')
@@ -27,13 +27,17 @@ export class BitbucketStrategy implements ScmStrategy {
     if (bitbucketProjectKey === undefined) {
       throw new BitbucketProjectKeyNotFoundError('Bitbucket project key not found')
     }
+    if (bitbucketBranch === undefined) {
+      throw new BitbucketBranchNotFoundError('Bitbucket branch not found')
+    }
 
     return {
       repository_slug: `${bitbucketWorkspace}/${bitbucketRepoSlug}`,
       bitbucket_commit: bitbucketCommit,
       bitbucket_workspace: bitbucketWorkspace,
       bitbucket_repo_slug: bitbucketRepoSlug,
-      bitbucket_project_key: bitbucketProjectKey
+      bitbucket_project_key: bitbucketProjectKey,
+      branch: bitbucketBranch
     }
   }
 }

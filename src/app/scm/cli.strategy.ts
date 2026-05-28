@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { TaskArgs, TaskSource } from '@trigger/core/task/task.entity'
 import { ScmStrategy } from '@trigger/app/scm/scm.interface'
 import { CliFilesRepository } from '@trigger/core/cli-files/cli-files.repository'
-import { BatchIdNotFoundError, BatchIdRequiredError, RepositoryUrlRequiredError, RepositoryUrlInvalidError } from '@trigger/app/scm/cli.error'
+import { BatchIdNotFoundError, BatchIdRequiredError, RepositoryUrlRequiredError, RepositoryUrlInvalidError, CliBranchRequiredError } from '@trigger/app/scm/cli.error'
 
 @Injectable()
 export class CliStrategy implements ScmStrategy {
@@ -12,7 +12,7 @@ export class CliStrategy implements ScmStrategy {
   }
 
   async handle (taskArgs: TaskArgs): Promise<TaskArgs> {
-    const { batch_id: batchId, repository_url: repositoryUrl } = taskArgs
+    const { batch_id: batchId, repository_url: repositoryUrl, branch } = taskArgs
     if (batchId === undefined) {
       throw new BatchIdRequiredError('Batch ID is required')
     }
@@ -22,6 +22,9 @@ export class CliStrategy implements ScmStrategy {
     }
     if (repositoryUrl === undefined) {
       throw new RepositoryUrlRequiredError('Repository URL is required')
+    }
+    if (branch === undefined) {
+      throw new CliBranchRequiredError('Branch is required')
     }
     let repositorySlug: string | undefined
     if ((repositoryUrl).startsWith('git@')) {
@@ -34,7 +37,8 @@ export class CliStrategy implements ScmStrategy {
     }
     return {
       batch_id: batchId,
-      repository_slug: repositorySlug
+      repository_slug: repositorySlug,
+      branch
     }
   }
 }

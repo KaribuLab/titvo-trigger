@@ -23,3 +23,9 @@ export class RepositoryUrlInvalidError extends AppError {
     super('repository-url-invalid', message)
   }
 }
+
+export class CliBranchRequiredError extends AppError {
+  constructor (message: string) {
+    super('cli-branch-required', message)
+  }
+}

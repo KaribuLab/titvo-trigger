@@ -29,6 +29,7 @@ export interface TaskEntity {
   args: TaskArgs
   result?: TaskResult
   status: TaskStatus
+  branch?: string
   createdAt: string
   updatedAt: string
 }

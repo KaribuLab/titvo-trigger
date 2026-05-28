@@ -23,3 +23,9 @@ export class GithubAssigneeNotFoundError extends AppError {
     super('github-assignee-not-found', message)
   }
 }
+
+export class GithubBranchNotFoundError extends AppError {
+  constructor (message: string) {
+    super('github-branch-not-found', message)
+  }
+}

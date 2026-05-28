@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { TaskArgs, TaskSource } from '@trigger/core/task/task.entity'
 import { ScmStrategy } from '@trigger/app/scm/scm.interface'
 import { AesService } from '@titvo/shared'
-import { GithubTokenNotFoundError, GithubRepoNameNotFoundError, GithubCommitShaNotFoundError, GithubAssigneeNotFoundError } from './github.error'
+import { GithubTokenNotFoundError, GithubRepoNameNotFoundError, GithubCommitShaNotFoundError, GithubAssigneeNotFoundError, GithubBranchNotFoundError } from './github.error'
 
 @Injectable()
 export class GithubStrategy implements ScmStrategy {
@@ -12,7 +12,7 @@ export class GithubStrategy implements ScmStrategy {
   }
 
   async handle (taskArgs: TaskArgs): Promise<TaskArgs> {
-    const { github_assignee: githubAssignee, github_repo_name: githubRepoName, github_token: githubToken, github_commit_sha: githubCommitSha } = taskArgs
+    const { github_assignee: githubAssignee, github_repo_name: githubRepoName, github_token: githubToken, github_commit_sha: githubCommitSha, github_branch: githubBranch } = taskArgs
     if (githubToken === undefined) {
       throw new GithubTokenNotFoundError('Github token not found')
     }
@@ -25,11 +25,15 @@ export class GithubStrategy implements ScmStrategy {
     if (githubAssignee === undefined) {
       throw new GithubAssigneeNotFoundError('Github assignee not found')
     }
+    if (githubBranch === undefined) {
+      throw new GithubBranchNotFoundError('Github branch not found')
+    }
     return {
       repository_slug: githubRepoName,
       github_assignee: githubAssignee,
       github_repo_name: githubRepoName,
-      github_commit_sha: githubCommitSha
+      github_commit_sha: githubCommitSha,
+      branch: githubBranch
     }
   }
 }

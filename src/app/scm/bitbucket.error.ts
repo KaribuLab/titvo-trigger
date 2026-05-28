@@ -23,3 +23,9 @@ export class BitbucketProjectKeyNotFoundError extends AppError {
     super('bitbucket-project-key-not-found', message)
   }
 }
+
+export class BitbucketBranchNotFoundError extends AppError {
+  constructor (message: string) {
+    super('bitbucket-branch-not-found', message)
+  }
+}

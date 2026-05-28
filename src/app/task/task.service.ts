@@ -36,7 +36,9 @@ export class TriggerTaskUseCase {
     const scanId = `tvo-scan-${uuidv4()}`
 
     const repositorySlug = args.repository_slug
+    const branch = args.branch
     this.logger.debug(`Repository slug: ${repositorySlug}`)
+    this.logger.debug(`Branch: ${branch}`)
     const repositorySlugHash = repositorySlug !== undefined
       ? createHash('md5').update(repositorySlug).digest('hex')
       : undefined
@@ -49,6 +51,10 @@ export class TriggerTaskUseCase {
       { name: 'TITVO_SCAN_TASK_ID', value: scanId }
     ]
 
+    if (branch !== undefined) {
+      environment.push({ name: 'TITVO_BRANCH', value: branch })
+    }
+
     if (process.env.AWS_STAGE === 'localstack') {
       this.logger.warn('Using localstack environment variables')
       environment.push({ name: 'TITVO_DYNAMO_TASK_TABLE_NAME', value: process.env.TASK_TABLE_NAME as string })
@@ -59,6 +65,12 @@ export class TriggerTaskUseCase {
       environment.push({ name: 'TITVO_GITHUB_ISSUE_FUNCTION_NAME', value: process.env.TITVO_GITHUB_ISSUE_FUNCTION_NAME as string })
       environment.push({ name: 'TITVO_REPORT_FUNCTION_NAME', value: process.env.TITVO_REPORT_FUNCTION_NAME as string })
       environment.push({ name: 'AWS_STAGE', value: process.env.AWS_STAGE as string })
+      if (process.env.TITVO_RAG_INDEXER_BUCKET !== undefined) {
+        environment.push({ name: 'TITVO_RAG_INDEXER_BUCKET', value: process.env.TITVO_RAG_INDEXER_BUCKET })
+      }
+      if (process.env.TITVO_BATCH_RUNNER_URL !== undefined) {
+        environment.push({ name: 'TITVO_BATCH_RUNNER_URL', value: process.env.TITVO_BATCH_RUNNER_URL })
+      }
       this.logger.log('Environment variables: %s', environment)
     }
     const response = await this.batchService.submitJob(`${source as string}-security-scan-${scanId}`, jobQueue, jobDefinition, environment)
@@ -70,6 +82,7 @@ export class TriggerTaskUseCase {
       },
       jobId: response.jobId,
       source,
+      branch,
       repositoryId: `${apiKey.userId}:${repositorySlugHash}`,
       status: TaskStatus.IN_PROGRESS,
       createdAt: new Date().toISOString(),
