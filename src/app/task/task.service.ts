@@ -10,6 +10,20 @@ import { createHash } from 'crypto'
 import { ConfigService } from '@titvo/shared'
 import { ArgumentNotFoundError, RepositoryIdUndefinedException, ScanIdNotFoundError, TaskNotFoundError } from '@trigger/app/task/task.error'
 
+const DEFAULT_SCAN_MODE = 'commit'
+const VALID_SCAN_MODES = new Set([DEFAULT_SCAN_MODE, 'full'])
+
+function normalizeScanMode (args: TaskArgs): string {
+  const scanMode = args.scan_mode
+  if (scanMode === undefined || scanMode === '') {
+    return DEFAULT_SCAN_MODE
+  }
+  if (!VALID_SCAN_MODES.has(scanMode)) {
+    throw new ArgumentNotFoundError('scan_mode must be one of: commit, full')
+  }
+  return scanMode
+}
+
 @Injectable()
 export class TriggerTaskUseCase {
   private readonly logger = new Logger(TriggerTaskUseCase.name)
@@ -28,6 +42,7 @@ export class TriggerTaskUseCase {
     if ((input.args.repository_url ?? '') === '') {
       throw new ArgumentNotFoundError('repository_url argument is required')
     }
+    const scanMode = normalizeScanMode(input.args as TaskArgs)
     const source = input.source as TaskSource
     const strategy = await this.scmStrategyResolver.resolve(source)
     const args = await strategy.handle(input.args as TaskArgs)
@@ -78,7 +93,8 @@ export class TriggerTaskUseCase {
       id: scanId,
       args: {
         ...args,
-        repository_url: input.args.repository_url
+        repository_url: input.args.repository_url,
+        scan_mode: scanMode
       },
       jobId: response.jobId,
       source,
