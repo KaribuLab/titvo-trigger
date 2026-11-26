@@ -70,8 +70,8 @@ export class TriggerTaskUseCase {
       environment.push({ name: 'TITVO_BRANCH', value: branch })
     }
 
-    if (process.env.AWS_STAGE === 'localstack') {
-      this.logger.warn('Using localstack environment variables')
+    if (process.env.AWS_STAGE === 'local') {
+      this.logger.warn('Using local environment variables')
       environment.push({ name: 'TITVO_DYNAMO_TASK_TABLE_NAME', value: process.env.TASK_TABLE_NAME as string })
       environment.push({ name: 'TITVO_DYNAMO_CONFIGURATION_TABLE_NAME', value: process.env.CONFIG_TABLE_NAME as string })
       environment.push({ name: 'TITVO_ENCRYPTION_KEY_NAME', value: process.env.ENCRYPTION_KEY_NAME as string })
